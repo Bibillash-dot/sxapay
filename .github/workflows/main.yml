@@ -20,18 +20,34 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Gradle 8.7
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.7'
 
-      - name: Build sxapay APK
-        working-directory: sxapay_Android
-        run: gradle assembleDebug --no-daemon
+      - name: Show project files
+        run: |
+          echo "=== PROJECT ==="
+          pwd
+          ls -la
+          echo "=== DIRECTORIES ==="
+          find . -maxdepth 3 -type f | sort | head -200
+
+      - name: Build sxapay
+        run: |
+          if [ -f "./gradlew" ]; then
+            chmod +x ./gradlew
+            ./gradlew assembleDebug --no-daemon
+          elif [ -f "./sxapay_Android/gradlew" ]; then
+            chmod +x ./sxapay_Android/gradlew
+            ./sxapay_Android/gradlew assembleDebug --no-daemon
+          else
+            echo "Gradle project tidak ditemukan."
+            exit 1
+          fi
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: sxapay-APK
-          path: sxapay_Android/app/build/outputs/apk/debug/*.apk
+          path: |
+            **/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
